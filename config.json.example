@@ -1,0 +1,8 @@
+{
+  "dbtype": "mysql",
+  "dbconfig": {"host": "127.0.0.1",
+                "user": "phistory",
+                "password": "phistorypasswd",
+                "database": "phistoryDB"
+  }
+}
