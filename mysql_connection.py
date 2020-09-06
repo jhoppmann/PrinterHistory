@@ -1,5 +1,5 @@
 import mysql.connector
-import json
+import mysql.connector.cursor
 
 
 class Connector:
@@ -36,3 +36,13 @@ class Connector:
         conn.commit()
         cursor.close()
         conn.close()
+
+    def load_data(self) -> dict:
+        conn = mysql.connector.connect(**self.config)
+        cursor = conn.cursor(dictionary=True)
+        _SQL = """SELECT * FROM HISTORY"""
+        cursor.execute(_SQL)
+        data = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return data

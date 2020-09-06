@@ -27,6 +27,15 @@ def handle_finish(req: 'flask_request') -> None:
     connector.save(**data)
 
 
+@app.route("/data", methods=['GET'])
+def get_data() -> str:
+    data = connector.load_data()
+    print(data)
+    for line in data:
+        line['DATE'] = datetime.timestamp(line['DATE'])
+    return json.dumps(data)
+
+
 def extract_info(req: 'flask_request') -> dict:
     data = {}
     extras = json.loads(request.form['extra'])
