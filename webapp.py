@@ -4,7 +4,10 @@ from mysql_connection import Connector
 from datetime import datetime
 
 app = Flask(__name__)
-connector = Connector()
+fp = open('config.json', 'r')
+config = json.load(fp)
+
+connector = Connector(config['dbconfig'])
 
 
 @app.route("/webhook", methods=['POST'])
@@ -15,8 +18,6 @@ def webhook() -> str:
     topic = request.form['topic']
     if topic == 'Print Done' or topic == 'Print Failed':
         handle_finish(request)
-    print(topic)
-    log(str(request.form))
     return "success"
 
 

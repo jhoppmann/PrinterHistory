@@ -4,14 +4,12 @@ import json
 
 class Connector:
 
-    def __init__(self):
-        fp = open('config.json', 'r')
-        self.config = json.load(fp)
+    def __init__(self, config: dict):
+        self.config = config
         self.ensure_tables_exist()
-        print(self.config)
 
     def save(self, file: str, time: str, topic: str, machine: str) -> None:
-        conn = mysql.connector.connect(**self.config['dbconfig'])
+        conn = mysql.connector.connect(**self.config)
         cursor = conn.cursor()
         _SQL = """insert into HISTORY
         (FILE, STATUS, MACHINE, PRINT_TIME)
@@ -32,7 +30,7 @@ class Connector:
                                   "`PRINT_TIME` bigint not null," \
                                   "PRIMARY KEY (`ID`)" \
                                   ")"
-        conn = mysql.connector.connect(**self.config['dbconfig'])
+        conn = mysql.connector.connect(**self.config)
         cursor = conn.cursor()
         cursor.execute(history_table_statement)
         conn.commit()
