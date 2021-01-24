@@ -1,11 +1,13 @@
 import mysql.connector
 import mysql.connector.cursor
+from logging import Logger
 
 
 class Connector:
 
-    def __init__(self, config: dict):
+    def __init__(self, config: dict, log: 'Logger'):
         self.config = config
+        self.log = log
         self.ensure_tables_exist()
 
     def save(self, file: str, time: str, topic: str, machine: str) -> None:
@@ -19,6 +21,7 @@ class Connector:
         conn.commit()
         cursor.close()
         conn.close()
+        self.log.info('New database line logged')
 
     def ensure_tables_exist(self) -> None:
         history_table_statement = "CREATE TABLE IF NOT EXISTS `HISTORY` (" \
@@ -30,7 +33,9 @@ class Connector:
                                   "`PRINT_TIME` bigint not null," \
                                   "PRIMARY KEY (`ID`)" \
                                   ")"
+        self.log.info('Setting up database connection...')
         conn = mysql.connector.connect(**self.config)
+        self.log.info('Database connected')
         cursor = conn.cursor()
         cursor.execute(history_table_statement)
         conn.commit()

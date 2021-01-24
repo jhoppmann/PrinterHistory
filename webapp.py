@@ -1,24 +1,61 @@
-from flask import Flask, request
+from logging import Logger
+
+from flask import Flask, request, Response
 import json
+import logging
 from mysql_connection import Connector
 from datetime import datetime
+from sys import exit
 
+
+def setup_logger() -> 'Logger':
+    """Sets up a file logger for the application"""
+    log = logging.getLogger('phistory')
+    log.setLevel(logging.DEBUG)
+    file_handler = logging.FileHandler('phistory.log')
+    file_handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    log.addHandler(file_handler)
+    return log
+
+
+log = setup_logger()
+
+log.info('Starting up Print History application')
 app = Flask(__name__)
-fp = open('config.json', 'r')
-config = json.load(fp)
 
-connector = Connector(config['dbconfig'])
+log.info('Loading config.json...')
+try:
+    fp = open('config.json', 'r')
+    config = json.load(fp)
+except FileNotFoundError:
+    log.error('Error while loading config (file not found). Exiting app.')
+    exit(1)
+except json.decoder.JSONDecodeError:
+    log.error('config.json doesn\'t contain valid JSON. Exiting app.')
+    exit(1)
+else:
+    log.info("config.json found and loaded")
+
+connector = Connector(config['dbconfig'], log)
 
 
 @app.route("/webhook", methods=['POST'])
 def webhook() -> str:
     """This method is the webhook endpoint"""
-    identifier = request.form['deviceIdentifier']
-    extras = json.loads(request.form['extra'])
-    topic = request.form['topic']
-    if topic == 'Print Done' or topic == 'Print Failed':
-        handle_finish(request)
-    return "success"
+    log.info('Request received')
+    try:
+        topic = request.form['topic']
+        if topic == 'Print Done' or topic == 'Print Failed':
+            handle_finish(request)
+        else:
+            log.info("Nothing to save, discarding data.")
+        return "success"
+    except KeyError as argh:
+        log.error("Key missing from data" + str(request))
+        return Response('{"status": "failure", "reason": "Key missing in request."}',
+                        status=400, mimetype='application/json')
 
 
 def handle_finish(req: 'flask_request') -> None:
@@ -29,6 +66,7 @@ def handle_finish(req: 'flask_request') -> None:
 
 @app.route("/data", methods=['GET'])
 def get_data() -> str:
+    """Returns all entries from database as JSON"""
     data = connector.load_data()
     print(data)
     for line in data:
@@ -38,18 +76,13 @@ def get_data() -> str:
 
 def extract_info(req: 'flask_request') -> dict:
     data = {}
-    extras = json.loads(request.form['extra'])
+    extras = json.loads(req.form['extra'])
     data['file'] = extras['name']
     data['time'] = extras['time']
     data['topic'] = req.form['topic']
     data['machine'] = req.form['deviceIdentifier']
+    log.info('New data: ' + str(data))
     return data
-
-
-def log(line: str) -> None:
-    """Logs a line to the chosen log system."""
-    with open("log", "a+") as file:
-        file.write(str(datetime.now()) + '\t' + line + '\n')
 
 
 if __name__ == '__main__':
