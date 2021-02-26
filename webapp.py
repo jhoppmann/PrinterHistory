@@ -4,6 +4,7 @@ from flask import Flask, request, Response
 import json
 import logging
 from mysql_connection import Connector
+from statistics_calculator import StatisticsCalculator
 from datetime import datetime
 from sys import exit
 
@@ -39,12 +40,26 @@ else:
     log.info("config.json found and loaded")
 
 connector = Connector(config['dbconfig'], log)
+webhook_key = ''
+if 'webhook_key' in config:
+    webhook_key = config['webhook_key']
+calculator = StatisticsCalculator(connector)
 
 
 @app.route("/webhook", methods=['POST'])
 def webhook() -> str:
     """This method is the webhook endpoint"""
     log.info('Request received')
+    if webhook_key != '':
+        try:
+            api_secret = request.form['apiSecret']
+            if api_secret != webhook_key:
+                return Response('{"status": "failure", "reason": "Api key is wrong!."}',
+                                status=401, mimetype='application/json')
+        except KeyError as argh:
+            log.error("Api Key missing")
+            return Response('{"status": "failure", "reason": "Api key missing in request."}',
+                            status=400, mimetype='application/json')
     try:
         topic = request.form['topic']
         if topic == 'Print Done' or topic == 'Print Failed':
@@ -71,6 +86,7 @@ def get_data() -> str:
     print(data)
     for line in data:
         line['DATE'] = datetime.timestamp(line['DATE'])
+    log.info("All data fetched, returning " + str(len(data)) + " lines")
     return json.dumps(data)
 
 
