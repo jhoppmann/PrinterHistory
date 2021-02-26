@@ -4,6 +4,6 @@
                 "user": "phistory",
                 "password": "phistorypasswd",
                 "database": "phistoryDB"
+  },
   "webhook_key": "example1234"
-  }
 }
