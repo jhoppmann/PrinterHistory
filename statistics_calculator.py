@@ -54,3 +54,13 @@ class StatisticsCalculator:
                 times[printer] = 0
             times[printer] += int(print_time)
         return times
+
+    def mean_print_length(self) -> float:
+        data = self.source.load_data()
+        print_time_sum = 0
+        for line in data:
+            print_time_sum += int(line['PRINT_TIME'])
+        return print_time_sum / len(data)
+
+    def stats_by_printers(self) -> dict:
+        return {}
