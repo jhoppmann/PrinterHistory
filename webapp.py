@@ -5,8 +5,19 @@ import json
 import logging
 from mysql_connection import Connector
 from statistics_calculator import StatisticsCalculator
+from json_rpc_handler import JsonRpcHandler
 from datetime import datetime
 from sys import exit
+
+
+def register_rpc_methods(calculator, handler):
+    methods = {}
+    methods['PRINT_TIME'] = calculator.print_time
+    methods['NUMBERS_BY_PRINTERS'] = calculator.numbers_by_printers
+    methods['NUMBERS_BY_PRINTERS_CLEANED'] = calculator.numbers_by_printers_cleaned
+    methods['MEAN_PRINT_LENGTH'] = calculator.mean_print_length
+    handler.register("CALCULATOR", methods)
+    pass
 
 
 def setup_logger() -> 'Logger':
@@ -44,6 +55,9 @@ webhook_key = ''
 if 'webhook_key' in config:
     webhook_key = config['webhook_key']
 calculator = StatisticsCalculator(connector)
+json_rpc_handler = JsonRpcHandler()
+
+register_rpc_methods(calculator, json_rpc_handler)
 
 
 @app.route("/webhook", methods=['POST'])
@@ -88,6 +102,12 @@ def get_data() -> str:
         line['DATE'] = datetime.timestamp(line['DATE'])
     log.info("All data fetched, returning " + str(len(data)) + " lines")
     return json.dumps(data)
+
+
+@app.route("/jsonrpc", methods=['POST'])
+def jsonrpc() -> str:
+    return json_rpc_handler.process(request.json)
+
 
 
 def extract_info(req: 'flask_request') -> dict:
