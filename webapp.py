@@ -1,6 +1,8 @@
 from logging import Logger
 
 from flask import Flask, request, Response
+from flask_cors import CORS
+
 import json
 import logging
 from mysql_connection import Connector
@@ -36,6 +38,7 @@ log = setup_logger()
 
 log.info('Starting up Print History application')
 app = Flask(__name__)
+CORS(app)
 
 log.info('Loading config.json...')
 try:
