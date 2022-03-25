@@ -36,13 +36,13 @@ class StatisticsCalculator:
             status_count[status] = status_count[status] + 1
         return return_value
 
-    def print_time(self) -> int:
+    def print_time(self) -> dict:
         data = self.source.load_data()
         time = 0
         for line in data:
             print_time = line['PRINT_TIME']
             time += int(print_time)
-        return time
+        return {"PRINT_TIME": time}
 
     def print_time_by_printer(self) -> dict:
         data = self.source.load_data()
@@ -55,12 +55,12 @@ class StatisticsCalculator:
             times[printer] += int(print_time)
         return times
 
-    def mean_print_length(self) -> float:
+    def mean_print_length(self) -> dict:
         data = self.source.load_data()
         print_time_sum = 0
         for line in data:
             print_time_sum += int(line['PRINT_TIME'])
-        return print_time_sum / len(data)
+        return {"PRINT_TIME": print_time_sum / len(data)}
 
     def stats_by_printers(self) -> dict:
         return {}
