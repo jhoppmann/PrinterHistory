@@ -1,7 +1,7 @@
 from logging import Logger
 
 from flask import Flask, request, Response
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 
 import json
 import logging
@@ -108,6 +108,7 @@ def get_data() -> str:
 
 
 @app.route("/jsonrpc", methods=['POST'])
+@cross_origin()
 def jsonrpc() -> str:
     return json_rpc_handler.process(request.json)
 
