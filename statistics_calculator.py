@@ -1,4 +1,11 @@
+from datetime import datetime
+
 from mysql_connection import Connector
+
+
+def get_month(date: datetime) -> str:
+    ret = str(date.year) + '-' + str(date.month).rjust(2, '0')
+    return ret
 
 
 class StatisticsCalculator:
@@ -62,5 +69,33 @@ class StatisticsCalculator:
             print_time_sum += int(line['PRINT_TIME'])
         return {"PRINT_TIME": print_time_sum / len(data)}
 
-    def stats_by_printers(self) -> dict:
-        return {}
+    def prints_by_month_and_printer(self) -> dict:
+        data = self.source.load_data()
+        result = {}
+        for line in data:
+            if line['PRINT_TIME'] < 60:
+                continue
+            printer = line['MACHINE']
+            month = get_month(line['DATE'])
+            if month not in result:
+                result[month] = {}
+            month_data = result[month]
+            if printer not in month_data:
+                month_data[printer] = {'PRINTS': 0, 'TIME': 0, 'SUCCESS': 0, 'FAIL': 0}
+            month_data[printer]['PRINTS'] += 1
+            month_data[printer]['TIME'] += line['PRINT_TIME']
+            if line['STATUS'] == 'Print Failed':
+                month_data[printer]['FAIL'] += 1
+            else:
+                month_data[printer]['SUCCESS'] += 1
+        return result
+
+    def all_data(self) -> dict:
+        result = {}
+        result['PRINT_TIME'] = self.print_time()
+        result['PRINT_TIME_BY_PRINTER'] = self.print_time_by_printer()
+        result['MEAN_PRINT_LENGTH'] = self.mean_print_length()
+        result['NUMBERS_BY_PRINTER_CLEANED'] = self.numbers_by_printers_cleaned()
+        result['PRINTS_BY_MONTH_AND_PRINTER'] = self.prints_by_month_and_printer()
+
+        return result
