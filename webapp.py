@@ -66,7 +66,7 @@ register_rpc_methods(calculator, json_rpc_handler)
 
 
 @app.route("/webhook", methods=['POST'])
-def webhook() -> str:
+def webhook() -> Response:
     """This method is the webhook endpoint"""
     log.info('Request received')
     if webhook_key != '':
@@ -85,7 +85,7 @@ def webhook() -> str:
             handle_finish(request)
         else:
             log.info("Nothing to save, discarding data.")
-        return "success"
+        return Response('{"status": "success"}', status=200, mimetype='application/json')
     except KeyError as argh:
         log.error("Key missing from data" + str(request))
         return Response('{"status": "failure", "reason": "Key missing in request."}',
