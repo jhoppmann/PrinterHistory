@@ -20,6 +20,8 @@ def register_rpc_methods(calculator, handler):
     methods['MEAN_PRINT_LENGTH'] = calculator.mean_print_length
     methods['PRINTS_BY_MONTH_AND_PRINTER'] = calculator.prints_by_month_and_printer
     methods['ALL_DATA'] = calculator.all_data
+    methods['FAIL_RATE_BY_PRINTERS'] = calculator.fail_rate_by_printers
+    methods['CUMULATIVE_PRINTS'] = calculator.cumulative_prints
     handler.register("CALCULATOR", methods)
     pass
 
