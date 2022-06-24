@@ -1,3 +1,4 @@
+import statistics
 from datetime import datetime
 
 from mysql_connection import Connector
@@ -88,10 +89,7 @@ class StatisticsCalculator:
     def print_time(self, data: dict = None) -> dict:
         if data is None:
             data = self.source.load_data()
-        time = 0
-        for line in data:
-            print_time = line['PRINT_TIME']
-            time += int(print_time)
+        time = sum([x['PRINT_TIME'] for x in data])
         return {"PRINT_TIME": time}
 
     def print_time_by_printer(self, data: dict = None) -> dict:
@@ -109,10 +107,8 @@ class StatisticsCalculator:
     def mean_print_length(self, data: dict = None) -> dict:
         if data is None:
             data = self.source.load_data()
-        print_time_sum = 0
-        for line in data:
-            print_time_sum += int(line['PRINT_TIME'])
-        return {"PRINT_TIME": print_time_sum / len(data)}
+        print_times = [int(x['PRINT_TIME']) for x in data]
+        return {"PRINT_TIME": statistics.mean(print_times)}
 
     def prints_by_month_and_printer(self, data: dict = None) -> dict:
         if data is None:
