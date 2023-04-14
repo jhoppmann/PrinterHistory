@@ -15,6 +15,7 @@ class StatisticsCalculator:
         self.source = source
 
     def cumulative_prints(self, data: dict = None) -> dict:
+        """Returns a dict with overall prints, excluding those under a minute."""
         if data is None:
             data = self.source.load_data()
         prints = 0
@@ -33,6 +34,7 @@ class StatisticsCalculator:
                 "PRINTS": prints}
 
     def fail_rate_by_printers(self, data: dict = None) -> dict:
+        """Returns a dict with the printer name as keys and the fail rate as value."""
         if data is None:
             data = self.source.load_data()
         return_value = {}
@@ -55,6 +57,7 @@ class StatisticsCalculator:
         return return_value
 
     def numbers_by_printers(self, data: dict = None) -> dict:
+        """Returns a dict of print statuses mapped to machine identifiers."""
         if data is None:
             data = self.source.load_data()
         return_value = {}
@@ -70,6 +73,8 @@ class StatisticsCalculator:
         return return_value
 
     def numbers_by_printers_cleaned(self, data: dict = None) -> dict:
+        """Returns a dict of print statuses mapped to machine identifiers. Prints with a total duration of under a
+        minute are exluded."""
         if data is None:
             data = self.source.load_data()
         return_value = {}
@@ -87,12 +92,14 @@ class StatisticsCalculator:
         return return_value
 
     def print_time(self, data: dict = None) -> dict:
+        """Returns a dict containing one item, PRINT_TIME, with the total logged duration over all printers."""
         if data is None:
             data = self.source.load_data()
         time = sum([x['PRINT_TIME'] for x in data])
         return {"PRINT_TIME": time}
 
     def print_time_by_printer(self, data: dict = None) -> dict:
+        """Returns a dict of total print times mapped to the machine on which they were logged"""
         if data is None:
             data = self.source.load_data()
         times = {}
@@ -105,12 +112,16 @@ class StatisticsCalculator:
         return times
 
     def mean_print_length(self, data: dict = None) -> dict:
+        """Returns a dict containing one key, PRINT_TIME, with a value of mean print time logged over all printers."""
         if data is None:
             data = self.source.load_data()
         print_times = [int(x['PRINT_TIME']) for x in data]
         return {"PRINT_TIME": statistics.mean(print_times)}
 
     def prints_by_month_and_printer(self, data: dict = None) -> dict:
+        """Provides a dict containing months in the format MM-yyyy. Every month contains another dict with all printers
+        that logged print time in that month. Every printer item is its own dict, containing the keys PRINTS (overall
+        prints in that month), TIME (print time in that month), SUCCESS (successful prints) and FAIL (failed prints)."""
         if data is None:
             data = self.source.load_data()
         result = {}
@@ -133,6 +144,7 @@ class StatisticsCalculator:
         return result
 
     def all_data(self) -> dict:
+        """Calls every statistics method and puts the result into a dict."""
         result = {}
         data = self.source.load_data()
         result['PRINT_TIME'] = self.print_time(data)
