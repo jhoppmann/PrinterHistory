@@ -5,6 +5,8 @@ from flask_cors import CORS, cross_origin
 
 import json
 import logging
+
+from mail_sender import MailSender
 from mysql_connection import Connector
 from statistics_calculator import StatisticsCalculator
 from json_rpc_handler import JsonRpcHandler
@@ -58,12 +60,14 @@ else:
     log.info("config.json found and loaded")
 
 connector = Connector(config['dbconfig'], log)
+mail_sender = None
+if 'mailconfig' in config:
+    mail_sender = MailSender(config['mailconfig'], log)
 webhook_key = ''
 if 'webhook_key' in config:
     webhook_key = config['webhook_key']
 calculator = StatisticsCalculator(connector)
 json_rpc_handler = JsonRpcHandler()
-
 register_rpc_methods(calculator, json_rpc_handler)
 
 
@@ -97,6 +101,8 @@ def webhook() -> Response:
 def handle_finish(req: 'flask_request') -> None:
     """Extracts and handles data from a print success request."""
     data = extract_info(req)
+    if data['topic'] == 'Print Done' and mail_sender is not None:
+        mail_sender.send_finish_info(data['machine'], data['file'], data['time'])
     connector.save(**data)
 
 
@@ -115,7 +121,6 @@ def get_data() -> str:
 @cross_origin()
 def jsonrpc() -> str:
     return json_rpc_handler.process(request.json)
-
 
 
 def extract_info(req: 'flask_request') -> dict:

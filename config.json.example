@@ -5,5 +5,12 @@
                 "password": "phistorypasswd",
                 "database": "phistoryDB"
   },
-  "webhook_key": "example1234"
+  "webhook_key": "example1234",
+  "mailconfig": {"host": "mail.host.com",
+                 "port": 587,
+                 "user": "phistory@host.com",
+                 "password": "phistorypasswd",
+                 "sender": "phistory@host.com",
+                 "recipient": "private@email.com"
+  }
 }
