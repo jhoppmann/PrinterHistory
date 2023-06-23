@@ -14,16 +14,15 @@ from datetime import datetime
 from sys import exit
 
 
-def register_rpc_methods(calculator, handler):
-    methods = {}
-    methods['PRINT_TIME'] = calculator.print_time
-    methods['NUMBERS_BY_PRINTERS'] = calculator.numbers_by_printers
-    methods['NUMBERS_BY_PRINTERS_CLEANED'] = calculator.numbers_by_printers_cleaned
-    methods['MEAN_PRINT_LENGTH'] = calculator.mean_print_length
-    methods['PRINTS_BY_MONTH_AND_PRINTER'] = calculator.prints_by_month_and_printer
-    methods['ALL_DATA'] = calculator.all_data
-    methods['FAIL_RATE_BY_PRINTERS'] = calculator.fail_rate_by_printers
-    methods['CUMULATIVE_PRINTS'] = calculator.cumulative_prints
+def register_rpc_methods(calculator: StatisticsCalculator, handler: JsonRpcHandler):
+    methods = {'PRINT_TIME': calculator.print_time,
+               'NUMBERS_BY_PRINTERS': calculator.numbers_by_printers,
+               'NUMBERS_BY_PRINTERS_CLEANED': calculator.numbers_by_printers_cleaned,
+               'MEAN_PRINT_LENGTH': calculator.mean_print_length,
+               'PRINTS_BY_MONTH_AND_PRINTER': calculator.prints_by_month_and_printer,
+               'ALL_DATA': calculator.all_data,
+               'FAIL_RATE_BY_PRINTERS': calculator.fail_rate_by_printers,
+               'CUMULATIVE_PRINTS': calculator.cumulative_prints}
     handler.register("CALCULATOR", methods)
     pass
 
@@ -40,6 +39,7 @@ def setup_logger() -> 'Logger':
     return log
 
 
+# setup code
 log = setup_logger()
 
 log.info('Starting up Print History application')
@@ -66,9 +66,8 @@ if 'mailconfig' in config:
 webhook_key = ''
 if 'webhook_key' in config:
     webhook_key = config['webhook_key']
-calculator = StatisticsCalculator(connector)
 json_rpc_handler = JsonRpcHandler()
-register_rpc_methods(calculator, json_rpc_handler)
+register_rpc_methods(StatisticsCalculator(connector), json_rpc_handler)
 
 
 @app.route("/webhook", methods=['POST'])
@@ -123,13 +122,25 @@ def jsonrpc() -> str:
     return json_rpc_handler.process(request.json)
 
 
+def make_filament_list(job: dict) -> list:
+    result = []
+    for key, value in job['filament'].items():
+        tool = key
+        length = value['length']
+        volume = value['volume']
+        result.append({'tool': tool, 'length': length, 'volume': volume})
+    return result
+
+
 def extract_info(req: 'flask_request') -> dict:
     data = {}
     extras = json.loads(req.form['extra'])
+    job = json.loads(req.form['job'])
     data['file'] = extras['name']
     data['time'] = extras['time']
     data['topic'] = req.form['topic']
     data['machine'] = req.form['deviceIdentifier']
+    data['tools'] = make_filament_list(job)
     log.info('New data: ' + str(data))
     return data
 
