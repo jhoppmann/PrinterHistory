@@ -22,7 +22,9 @@ class MailSender:
         msg['To'] = self.mailconfig['recipient']
         msg['Subject'] = 'Print finished: ' + file
         msg['Message-ID'] = email.utils.make_msgid()
-        body = 'Print ' + file + " finished on " + printer + " (print time: " + str(timedelta(seconds=print_time)) + ")."
+        msg['Date'] = email.utils.formatdate(localtime=True)
+
+        body = 'Print ' + file + ' finished on ' + printer + " (print time: " + str(timedelta(seconds=print_time)) + ")."
         msg.attach(MIMEText(body, 'plain'))
 
         server = smtplib.SMTP(self.mailconfig['host'], self.mailconfig['port'])
